@@ -1,6 +1,9 @@
 <html>
 <head>
-    <title>Three.js Framework Example</title>
+    <title>CSC3210 Galactic Glide</title>
+    <style>
+    body {margin: 0; overflow: hidden;} /* Removes the default border and scrollbars */
+    </style>
 </head>
 <body>
     
@@ -15,10 +18,10 @@ const scene = new THREE.Scene();
 // 2. Configure the Camera (Perspective Projection)
 // Arguments: Field of View (deg), Aspect Ratio, Near Clipping Plane, Far Clipping Plane
 const camera = new THREE.PerspectiveCamera(
-  35, 
+  75, 
   window.innerWidth / window.innerHeight, 
   0.1, 
-  1000
+  2000
 );
 camera.position.set(0, 0, 3); // Position the camera along the +Z axis
 camera.lookAt(new THREE.Vector3(0, 0, 0));
@@ -64,6 +67,17 @@ renderer.setClearColor(0x111111, 1.0); // Dark grey background
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
+
+// Function that resizes the camera and renderer to match the window
+function onWindowResize() {
+    // Updates the aspect ratio so the scene doesn't stretch
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', onWindowResize);
 
 // 5. Render the Frame
 renderer.render(scene, camera);
