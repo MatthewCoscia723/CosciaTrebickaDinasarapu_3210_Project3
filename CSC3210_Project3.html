@@ -91,6 +91,12 @@ let pitch = 0;
 
 ship.rotation.order = 'YXZ'; // Applies yaw first, then pitch, like a first person camera
 
+// IMPORTANT: Configuration for how fast the ship flies (units per second)
+const shipSpeed = 40;
+
+// Vector that stores the direction the ship is facing (reused every frame)
+const forward = new THREE.Vector3();
+
 // Initialize the WebGL Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(0x000000, 1.0); // Black background
@@ -124,6 +130,13 @@ function animate() {
   pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch)); // Keeps pitch within its limits
   ship.rotation.set(pitch, yaw, 0);
 
+  // Moves the ship forward in the direction the camera is looking
+  camera.getWorldDirection(forward);
+  ship.position.addScaledVector(forward, shipSpeed * deltaTime);
+
+  // Keeps the starfield centered on the ship so it never flies past the stars
+  starfield.position.copy(ship.position);
+  
   renderer.render(scene, camera);
 }
 
