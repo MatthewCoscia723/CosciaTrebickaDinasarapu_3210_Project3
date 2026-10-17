@@ -74,7 +74,7 @@ const fieldRadius = 600;
 // Configuration for the closest an object can be placed to the ship
 const minSpawnDistance = 50;
 
-// Geometry and material shared by every placeholder object (one copy saves memory)
+// Geometries for different shapes of varying asteroids
 const objectGeometries = [
   new THREE.IcosahedronGeometry(1, 0),
   new THREE.OctahedronGeometry(1,0),
@@ -84,6 +84,7 @@ const objectGeometries = [
   new THREE.TetrahedronGeometry(1, 0)
 ];
 
+// Real asteroid hex-code colors (according to google)
 const objectColors = [
   0x515155,
   0x555055,
@@ -116,16 +117,20 @@ function placeRandomly(object, center) {
 
 // Iterates over every object, gives it a size and position, and adds it to the scene
 for (let i = 0; i < objectCount; i++) {
+  // Decide which shape to give the asteroid
   const shapeID = Math.floor(Math.random() * objectGeometries.length);
   const geometry = objectGeometries[shapeID];
 
+  // Decide which color to give the asteroid and add the texture onto it
   const colorID = Math.floor(Math.random() * objectColors.length);
   const material = new THREE.MeshBasicMaterial({map: asteroidTexture, color: objectColors[colorID]});
 
+  // Set the size of the asteroid
   const spaceObject = new THREE.Mesh(geometry, material);
   spaceObject.scale.setScalar(2 + Math.random() * 8);
   placeRandomly(spaceObject, ship.position);
   
+  // Add the asteroid to the scene.
   scene.add(spaceObject);
   spaceObjects.push(spaceObject);
 }
