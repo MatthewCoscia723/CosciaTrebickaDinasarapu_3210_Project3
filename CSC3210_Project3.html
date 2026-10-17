@@ -75,8 +75,22 @@ const fieldRadius = 600;
 const minSpawnDistance = 50;
 
 // Geometry and material shared by every placeholder object (one copy saves memory)
-const placeholderGeometry = new THREE.IcosahedronGeometry(1, 0);
-const placeholderMaterial = new THREE.MeshNormalMaterial();
+const objectGeometries = [
+  new THREE.IcosahedronGeometry(1, 0),
+  new THREE.OctahedronGeometry(1,0),
+  new THREE.DodecahedronGeometry(1,0),
+  new THREE.BoxGeometry(1.5, 1.5, 1.5)
+];
+
+const objectColors = [
+  0xff0000,
+  0x33a500,
+  0xffff00,
+  0x008000,
+  0x0000ff,
+  0x800080,
+  0xffffff
+];
 
 // Array that stores every object in the field
 const spaceObjects = [];
@@ -94,9 +108,16 @@ function placeRandomly(object, center) {
 
 // Iterates over every object, gives it a size and position, and adds it to the scene
 for (let i = 0; i < objectCount; i++) {
-  const spaceObject = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
-  spaceObject.scale.setScalar(2 + Math.random() * 8); // Gives each object a random size from 2 to 10
+  const shapeID = Math.floor(Math.random() * objectGeometries.length);
+  const geometry = objectGeometries[shapeID];
+
+  const colorID = Math.floor(Math.random() * objectColors.length);
+  const material = new THREE.MeshBasicMaterial({color: objectColors[colorID]});
+
+  const spaceObject = new THREE.Mesh(geometry, material);
+  spaceObject.scale.setScalar(2 + Math.random() * 8);
   placeRandomly(spaceObject, ship.position);
+  
   scene.add(spaceObject);
   spaceObjects.push(spaceObject);
 }
