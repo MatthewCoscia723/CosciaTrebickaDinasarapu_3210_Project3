@@ -76,13 +76,24 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
 }
 
 window.addEventListener('resize', onWindowResize);
 
-// 5. Render the Frame
-renderer.render(scene, camera);
+// Clock that measures the time between frames
+const clock = new THREE.Clock();
+
+// Function that runs once per frame to update and draw the scene
+function animate() {
+  requestAnimationFrame(animate);
+
+  // Calculates how many seconds passed since the last frame
+  const deltaTime = Math.min(clock.getDelta(), 0.1); // Caps big jumps after switching tabs
+
+  renderer.render(scene, camera);
+}
+
+animate();
     </script>
 </body>
 </html>
