@@ -23,9 +23,11 @@ const camera = new THREE.PerspectiveCamera(
   0.1, 
   2000
 );
-camera.position.set(0, 0, 3); // Position the camera along the +Z axis
-camera.lookAt(new THREE.Vector3(0, 0, 0));
-scene.add(camera);
+
+// Group that represents the ship and carries the cameras
+const ship = new THREE.Group();
+ship.add(camera);
+scene.add(ship);
 
 // IMPORTANT: Configuration for how many stars fill the background 
 const starCount = 3000;
@@ -63,6 +65,32 @@ function createStarfield() {
 const starfield = createStarfield();
 scene.add(starfield);
 
+// Object that holds the mouse position from -1 to 1 (0 is the center of the screen)
+const mouse = {
+  x: 0,
+  y: 0
+};
+
+// Function that converts the mouse position into the -1 to 1 range
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1; // Flipped so up is positive
+}
+
+window.addEventListener('mousemove', onMouseMove);
+
+// IMPORTANT: Configuration for how fast the ship turns (radians per second at the screen edge)
+const turnSpeed = 1.5;
+
+// Configuration for the max up/down angle so the ship can't flip over
+const maxPitch = Math.PI / 2 - 0.01;
+
+// Ship's current left/right (yaw) and up/down (pitch) angles
+let yaw = 0;
+let pitch = 0;
+
+ship.rotation.order = 'YXZ'; // Applies yaw first, then pitch, like a first person camera
+
 // Initialize the WebGL Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(0x000000, 1.0); // Black background
@@ -89,6 +117,12 @@ function animate() {
 
   // Calculates how many seconds passed since the last frame
   const deltaTime = Math.min(clock.getDelta(), 0.1); // Caps big jumps after switching tabs
+
+  // Turns the ship based on how far the mouse is from the center
+  yaw -= mouse.x * turnSpeed * deltaTime;
+  pitch += mouse.y * turnSpeed * deltaTime;
+  pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch)); // Keeps pitch within its limits
+  ship.rotation.set(pitch, yaw, 0);
 
   renderer.render(scene, camera);
 }
