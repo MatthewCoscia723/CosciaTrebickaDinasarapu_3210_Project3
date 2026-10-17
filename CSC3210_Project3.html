@@ -156,6 +156,10 @@ const mirrorHeightFraction = 0.2;
 // Configuration for the gap between the mirror and the top of the window (pixels)
 const mirrorMargin = 10;
 
+// IMPORTANT: Configuration for the mirror border's thickness (pixels)
+const mirrorBorderSize = 3;
+const mirrorBorderColor = 0x5fd4ff;
+
 // Function that calculates the mirror's size and position in pixels
 function getMirrorRectangle() {
   const width = window.innerWidth * mirrorWidthFraction;
@@ -240,8 +244,21 @@ function animate() {
   renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
   renderer.render(scene, camera);
 
-  // Draws the rear view only inside the mirror rectangle
+  // Calculates where the mirror goes this frame
   const mirrorRectangle = getMirrorRectangle();
+
+  // Draws the mirror's border by clearing a slightly bigger rectangle to the border color
+  renderer.setScissor(
+    mirrorRectangle.x - mirrorBorderSize, 
+    mirrorRectangle.y - mirrorBorderSize,
+    mirrorRectangle.width + mirrorBorderSize * 2,
+    mirrorRectangle.height + mirrorBorderSize * 2
+  );
+  renderer.setClearColor(mirrorBorderColor, 1.0);
+  renderer.clear();
+  renderer.setClearColor(0x000000, 1.0) // Switches back to black for the mirror's background
+
+  // Draws the rear view only inside the mirror rectangle
   renderer.setViewport(mirrorRectangle.x, mirrorRectangle.y, mirrorRectangle.width, mirrorRectangle.height);
   renderer.setScissor(mirrorRectangle.x, mirrorRectangle.y, mirrorRectangle.width, mirrorRectangle.height);
   renderer.render(scene, rearCamera);
