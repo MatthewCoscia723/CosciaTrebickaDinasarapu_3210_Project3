@@ -65,6 +65,42 @@ function createStarfield() {
 const starfield = createStarfield();
 scene.add(starfield);
 
+// IMPORTANT: Configuration for how many objects fill the space around the ship
+const objectCount = 150;
+
+// IMPORTANT: Configuration for how far the ship objects can be 
+const fieldRadius = 600;
+
+// Configuration for the closest an object can be placed to the ship
+const minSpawnDistance = 50;
+
+// Geometry and material shared by every placeholder object (one copy saves memory)
+const placeholderGeometry = new THREE.IcosahedronGeometry(1, 0);
+const placeholderMaterial = new THREE.MeshNormalMaterial();
+
+// Array that stores every object in the field
+const spaceObjects = [];
+
+// Function that moves an object to a random spot around a center point
+function placeRandomly(object, center) {
+  // Picks a random direction
+  const direction = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+
+  // Picks a random distance between the min and max
+  const distance = minSpawnDistance + Math.random() * (fieldRadius - minSpawnDistance);
+
+  object.position.copy(center).addScaledVector(direction, distance);
+}
+
+// Iterates over every object, gives it a size and position, and adds it to the scene
+for (let i = 0; i < objectCount; i++) {
+  const spaceObject = new THREE.Mesh(placeholderGeometry, placeholderMaterial);
+  spaceObject.scale.setScalar(2 + Math.random() * 8); // Gives each object a random size from 2 to 10
+  placeRandomly(spaceObject, ship.position);
+  scene.add(spaceObject);
+  spaceObjects.push(spaceObject);
+}
+
 // Object that holds the mouse position from -1 to 1 (0 is the center of the screen)
 const mouse = {
   x: 0,
