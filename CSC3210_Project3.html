@@ -133,6 +133,22 @@ const shipSpeed = 40;
 // Vector that stores the direction the ship is facing (reused every frame)
 const forward = new THREE.Vector3();
 
+// Function that moves an object that fell out of range to a new spot
+function respawnAhead(object) {
+  // Picks a random direction
+  const direction = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+
+  // Flips the direction if it points behind the ship
+  if (direction.dot(forward) < 0) {
+    direction.negate();
+  }
+
+  // Places it near the edge of the field so it doesn't pop in right next to the ship
+  const distance = fieldRadius * (0.7 + Math.random() * 0.3);
+
+  object.position.copy(ship.position).addScaledVector(direction, distance);
+}
+
 // Initialize the WebGL Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(0x000000, 1.0); // Black background
@@ -173,6 +189,15 @@ function animate() {
   // Keeps the starfield centered on the ship so it never flies past the stars
   starfield.position.copy(ship.position);
   
+  // Iterates over every object and respawns any that are out of range
+  for (let i = 0; i < spaceObjects.length; i++) {
+    const spaceObject = spaceObjects[i];
+
+    if (spaceObject.position.distanceTo(ship.position) > fieldRadius) {
+      respawnAhead(spaceObject);
+    }
+  }
+
   renderer.render(scene, camera);
 }
 
