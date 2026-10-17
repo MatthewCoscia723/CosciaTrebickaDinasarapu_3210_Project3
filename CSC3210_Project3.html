@@ -12,10 +12,10 @@
 
     <script type="module">
 
-// 1. Initialize the Scene
+// Initialize the Scene
 const scene = new THREE.Scene();
 
-// 2. Configure the Camera (Perspective Projection)
+// Configure the Camera (Perspective Projection)
 // Arguments: Field of View (deg), Aspect Ratio, Near Clipping Plane, Far Clipping Plane
 const camera = new THREE.PerspectiveCamera(
   75, 
@@ -27,43 +27,45 @@ camera.position.set(0, 0, 3); // Position the camera along the +Z axis
 camera.lookAt(new THREE.Vector3(0, 0, 0));
 scene.add(camera);
 
-// 3. Define Custom Triangle Geometry using BufferGeometry
-function createTriangleMesh() {
+// IMPORTANT: Configuration for how many stars fill the background 
+const starCount = 3000;
+
+// Configuration for how far away the stars are placed
+const starRadius = 1500;
+
+// Function that creates the background starfield
+function createStarfield() {
+  // Array that stores the x, y, and z of every star
+  const positions = new Float32Array(starCount * 3);
+
+  // Iterates over every star and places it at a random point on a large sphere
+  for (let i = 0; i < starCount; i++) {
+    // Picks a random direction and pushes it out to the sphere's edge
+    const direction = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize().multiplyScalar(starRadius);
+    positions[i * 3] = direction.x;
+    positions[i * 3 + 1] = direction.y;
+    positions[i * 3 + 2] = direction.z;
+  }
+
   const geometry = new THREE.BufferGeometry();
-  
-  // Define 3D positions for 3 vertices [x, y, z]
-  const vertices = new Float32Array([
-    -0.5, -0.5,  0.0,  // Vertex 0: Bottom-Left
-     0.5, -0.5,  0.0,  // Vertex 1: Bottom-Right
-     0.0,  0.5,  0.0   // Vertex 2: Top-Center
-  ]);
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-  // Define per-vertex RGB colors (range 0.0 - 1.0)
-  const colors = new Float32Array([
-    1.0, 0.0, 0.0,  // Red
-    0.0, 1.0, 0.0,  // Green
-    0.0, 0.0, 1.0   // Blue
-  ]);
-
-  // Assign position and color attributes (itemSize = 3 components per vertex)
-  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-  // Create a material that reads interpolated vertex colors
-  const material = new THREE.MeshBasicMaterial({ 
-    vertexColors: true, 
-    side: THREE.DoubleSide 
+  // Material that draws each star as a small white dot
+  const material = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 2,
+    sizeAttenuation: false // Keeps every star the same size no matter how far away it is
   });
 
-  return new THREE.Mesh(geometry, material);
+  return new THREE.Points(geometry, material);
 }
 
-const triangleMesh = createTriangleMesh();
-scene.add(triangleMesh);
+const starfield = createStarfield();
+scene.add(starfield);
 
-// 4. Initialize the WebGL Renderer
+// Initialize the WebGL Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setClearColor(0x111111, 1.0); // Dark grey background
+renderer.setClearColor(0x000000, 1.0); // Black background
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 document.body.appendChild(renderer.domElement);
