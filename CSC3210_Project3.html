@@ -149,6 +149,34 @@ function respawnAhead(object) {
   object.position.copy(ship.position).addScaledVector(direction, distance);
 }
 
+// IMPORTANT: Configuration for the rear-view mirror's size (fraction of the window)
+const mirrorWidthFraction = 0.3;
+const mirrorHeightFraction = 0.2;
+
+// Configuration for the gap between the mirror and the top of the window (pixels)
+const mirrorMargin = 10;
+
+// Function that calculates the mirror's size and position in pixels
+function getMirrorRectangle() {
+  const width = window.innerWidth * mirrorWidthFraction;
+  const height = window.innerHeight * mirrorHeightFraction;
+  const x = (window.innerWidth - width) / 2; // Centers the mirror horizontally
+  const y = window.innerHeight - height - mirrorMargin; // WebGL measures y from the bottom, so this places it at the top
+
+  return {
+    x: x,
+    y: y,
+    width: width,
+    height: height
+  };
+}
+
+// Camera that looks out the back of the ship for the rear-view mirror 
+const startMirrorRectangle = getMirrorRectangle();
+const rearCamera = new THREE.PerspectiveCamera(75, startMirrorRectangle.width / startMirrorRectangle.height, 0.1, 2000);
+rearCamera.rotation.y = Math.PI; // Turns the camera 180 degrees to face backwards
+ship.add(rearCamera);
+
 // Initialize the WebGL Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setClearColor(0x000000, 1.0); // Black background
@@ -162,6 +190,11 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    // Updates the rear camera's aspect ratio to match the mirror's new shape
+    const mirrorRectangle = getMirrorRectangle();
+    rearCamera.aspect = mirrorRectangle.width / mirrorRectangle.height;
+    rearCamera.updateProjectionMatrix();
 }
 
 window.addEventListener('resize', onWindowResize);
@@ -198,7 +231,20 @@ function animate() {
     }
   }
 
+  // RASTERIZATION: Scissor test + viewports for the rear-view mirror
+  // The scissor test makes WebGL only change pixels inside a rectangle, so the mirror can be drawn on top of the main view without erasing it
+  renderer.setScissorTest(true);
+
+  // Draws the main view across the whole window
+  renderer.setViewport(0, 0, window.innerWidth, window.innerHeight);
+  renderer.setScissor(0, 0, window.innerWidth, window.innerHeight);
   renderer.render(scene, camera);
+
+  // Draws the rear view only inside the mirror rectangle
+  const mirrorRectangle = getMirrorRectangle();
+  renderer.setViewport(mirrorRectangle.x, mirrorRectangle.y, mirrorRectangle.width, mirrorRectangle.height);
+  renderer.setScissor(mirrorRectangle.x, mirrorRectangle.y, mirrorRectangle.width, mirrorRectangle.height);
+  renderer.render(scene, rearCamera);
 }
 
 animate();
