@@ -3,10 +3,23 @@
     <title>CSC3210 Galactic Glide</title>
     <style>
     body {margin: 0; overflow: hidden;} /* Removes the default border and scrollbars */
+
+    #hud {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        color: #5fd4ff;
+        font-family: monospace;
+        font-size: 18px;
+        z-index: 10;
+    }
     </style>
 </head>
 <body>
-    
+    <div id="hud">
+      <div id="speedDisplay">Speed: 40</div>
+      <div id="collisionDisplay">Collisions: 0</div>
+    </div>
   <!-- Three.js Dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
@@ -254,6 +267,14 @@ ship.rotation.order = 'YXZ'; // Applies yaw first, then pitch, like a first pers
 // IMPORTANT: Configuration for how fast the ship flies (units per second)
 const shipSpeed = 40;
 
+// Reference to the speed HUD
+const speedDisplay = document.getElementById("speedDisplay");
+speedDisplay.textContent = `Speed: ${shipSpeed}`;
+
+let collisions = 0;
+const collisionDisplay = document.getElementById("collisionDisplay");
+collisionDisplay.textContent = `Collisions: ${collisions}`;
+
 // Vector that stores the direction the ship is facing (reused every frame)
 const forward = new THREE.Vector3();
 
@@ -389,6 +410,8 @@ function animate() {
       spaceObject.driftY = collisionDirection.y * bounceStrength;
       spaceObject.driftZ = collisionDirection.z * bounceStrength;
       spaceObject.isColliding = true;
+      collisions++;
+      collisionDisplay.textContent = `Collisions: ${collisions}`;
       console.log("Collision detected!");
     }
 
