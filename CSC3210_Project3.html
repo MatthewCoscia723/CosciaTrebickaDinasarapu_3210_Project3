@@ -15,8 +15,8 @@
 // Initialize the Scene
 const scene = new THREE.Scene();
 
-const sunGeometry = new THREE.SphereGeometry(15, 25, 25);
-const sunMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
+const sunGeometry = new THREE.SphereGeometry(30, 30, 30);
+const sunMaterial = new THREE.MeshBasicMaterial({color: 0xff9900});
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 sun.position.set(100, 100, -200);
 scene.add(sun);
@@ -181,7 +181,17 @@ for (let i = 0; i < objectCount; i++) {
 
   // Set the size of the asteroid
   const spaceObject = new THREE.Mesh(geometry, material);
-  spaceObject.scale.setScalar(2 + Math.random() * 8);
+  spaceObject.scale.setScalar(2 + Math.random() * 5);
+  
+  // Set random rotation speeds of each individual asteroid
+  spaceObject.rotationSpeedX = Math.random();
+  spaceObject.rotationSpeedY = Math.random();
+
+  // Set random drifts of each indiidual asteroid
+  spaceObject.driftX = (Math.random() - 0.5) * 0.4;
+  spaceObject.driftY = (Math.random() - 0.5) * 0.4;
+  spaceObject.driftZ = (Math.random() - 0.5) * 0.4;
+
   placeRandomly(spaceObject, ship.position);
   
   // Add the asteroid to the scene.
@@ -327,6 +337,15 @@ function animate() {
   // Iterates over every object and respawns any that are out of range
   for (let i = 0; i < spaceObjects.length; i++) {
     const spaceObject = spaceObjects[i];
+
+    // Rotate each space object by its unique rotationSpeed
+    spaceObject.rotation.x += spaceObject.rotationSpeedX * deltaTime;
+    spaceObject.rotation.y += spaceObject.rotationSpeedY * deltaTime;
+
+    // Drift each space object by its unique drift
+    spaceObject.position.x += spaceObject.driftX * deltaTime;
+    spaceObject.position.y += spaceObject.driftY * deltaTime;
+    spaceObject.position.z += spaceObject.driftZ * deltaTime;
 
     if (spaceObject.position.distanceTo(ship.position) > fieldRadius) {
       respawnAhead(spaceObject);
