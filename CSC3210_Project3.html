@@ -2,7 +2,11 @@
 <head>
     <title>CSC3210 Galactic Glide</title>
     <style>
-    body {margin: 0; overflow: hidden;} /* Removes the default border and scrollbars */
+    body {
+      margin: 0; 
+      overflow: hidden;
+      cursor: none;
+    } /* Removes the default border and scrollbars and hides the mouse cursor during flight */
 
     #hud {
         position: fixed;
@@ -57,6 +61,7 @@ const ship = new THREE.Group();
 ship.add(camera);
 scene.add(ship);
 
+// Configuration for collision detection and asteroid bounce reaction
 const shipCollisionRadius = 3;
 const bounceStrength = 30;
 
@@ -72,6 +77,7 @@ const shieldMaterial = new THREE.MeshBasicMaterial({
   side: THREE.BackSide
 });
 
+// Create the shield mesh and attach it to the ship
 const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
 ship.add(shield);
 
@@ -167,6 +173,7 @@ for (let i = 0; i < objectCount; i++) {
   const shapeID = Math.floor(Math.random() * objectGeometries.length);
   const geometry = objectGeometries[shapeID];
 
+  // Compute a bounding sphere so the asteroid can be used for collision detection
   geometry.computeBoundingSphere();
 
   // Decide which color to give the asteroid and add the texture onto it
@@ -215,6 +222,8 @@ for (let i = 0; i < objectCount; i++) {
   // Set the size of the asteroid
   const spaceObject = new THREE.Mesh(geometry, material);
   spaceObject.scale.setScalar(2 + Math.random() * 5);
+
+  // Store the asteroid's scaled collision radius and initial collision state
   spaceObject.collisionRadius = geometry.boundingSphere.radius * spaceObject.scale.x;
   spaceObject.isColliding = false;
   
@@ -222,11 +231,12 @@ for (let i = 0; i < objectCount; i++) {
   spaceObject.rotationSpeedX = Math.random() * 0.75;
   spaceObject.rotationSpeedY = Math.random() * 0.75;
 
-  // Set random drifts of each indiidual asteroid
+  // Set random drifts of each individual asteroid
   spaceObject.driftX = (Math.random() - 0.5) * 17;
   spaceObject.driftY = (Math.random() - 0.5) * 17;
   spaceObject.driftZ = (Math.random() - 0.5) * 17;
 
+  // Configure whether the asteroid drifts straight or follows a curved path
   spaceObject.driftType = Math.floor(Math.random() * 2);
   spaceObject.curveSpeed = 1 + Math.random();
   spaceObject.curveAmount = 5 + Math.random() * 5;
@@ -271,6 +281,7 @@ const shipSpeed = 40;
 const speedDisplay = document.getElementById("speedDisplay");
 speedDisplay.textContent = `Speed: ${shipSpeed}`;
 
+// Track collisions and display the count in the HUD
 let collisions = 0;
 const collisionDisplay = document.getElementById("collisionDisplay");
 collisionDisplay.textContent = `Collisions: ${collisions}`;
@@ -385,8 +396,6 @@ function animate() {
   for (let i = 0; i < spaceObjects.length; i++) {
     const spaceObject = spaceObjects[i];
 
-    
-
     // Rotate each space object by its unique rotationSpeed
     spaceObject.rotation.x += spaceObject.rotationSpeedX * deltaTime;
     spaceObject.rotation.y += spaceObject.rotationSpeedY * deltaTime;
@@ -400,7 +409,7 @@ function animate() {
       spaceObject.position.x += Math.sin(clock.elapsedTime * spaceObject.curveSpeed) * spaceObject.curveAmount * deltaTime;
     }
 
-    // Detect collision between the ship and the asteroid using their collision radii
+    // Detect collisions, bounce the asteroid away, and update the collision counter
     const distance = ship.position.distanceTo(spaceObject.position);
 
     if (distance <= shipCollisionRadius + spaceObject.collisionRadius && !spaceObject.isColliding) {
@@ -412,7 +421,6 @@ function animate() {
       spaceObject.isColliding = true;
       collisions++;
       collisionDisplay.textContent = `Collisions: ${collisions}`;
-      console.log("Collision detected!");
     }
 
     if (distance > shipCollisionRadius + spaceObject.collisionRadius) {
@@ -439,14 +447,14 @@ function animate() {
 
   // Draws the mirror's border by clearing a slightly bigger rectangle to the border color
   renderer.setScissor(
-    mirrorRectangle.x - mirrorBorderSize, 
+    mirrorRectangle.x - mirrorBorderSize,
     mirrorRectangle.y - mirrorBorderSize,
     mirrorRectangle.width + mirrorBorderSize * 2,
     mirrorRectangle.height + mirrorBorderSize * 2
   );
   renderer.setClearColor(mirrorBorderColor, 1.0);
   renderer.clear();
-  renderer.setClearColor(0x000000, 1.0) // Switches back to black for the mirror's background
+  renderer.setClearColor(0x000000, 1.0); // Switches back to black for the mirror's background
 
   // Draws the rear view only inside the mirror rectangle
   renderer.setViewport(mirrorRectangle.x, mirrorRectangle.y, mirrorRectangle.width, mirrorRectangle.height);
