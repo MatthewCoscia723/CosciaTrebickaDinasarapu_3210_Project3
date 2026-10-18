@@ -45,6 +45,7 @@ ship.add(camera);
 scene.add(ship);
 
 const shipCollisionRadius = 3;
+const bounceStrength = 30;
 
 // IMPORTANT: Configuration for how many stars fill the background 
 const starCount = 3000;
@@ -187,6 +188,7 @@ for (let i = 0; i < objectCount; i++) {
   const spaceObject = new THREE.Mesh(geometry, material);
   spaceObject.scale.setScalar(2 + Math.random() * 5);
   spaceObject.collisionRadius = geometry.boundingSphere.radius * spaceObject.scale.x;
+  spaceObject.isColliding = false;
   
   // Set random rotation speeds of each individual asteroid
   spaceObject.rotationSpeedX = Math.random() * 0.75;
@@ -365,11 +367,21 @@ function animate() {
     // Detect collision between the ship and the asteroid using their collision radii
     const distance = ship.position.distanceTo(spaceObject.position);
 
-    if (distance <= shipCollisionRadius + spaceObject.collisionRadius) {
+    if (distance <= shipCollisionRadius + spaceObject.collisionRadius && !spaceObject.isColliding) {
+      const collisionDirection = spaceObject.position.clone().sub(ship.position).normalize();
+
+      spaceObject.driftX = collisionDirection.x * bounceStrength;
+      spaceObject.driftY = collisionDirection.y * bounceStrength;
+      spaceObject.driftZ = collisionDirection.z * bounceStrength;
+      spaceObject.isColliding = true;
       console.log("Collision detected!");
     }
 
-    if (spaceObject.position.distanceTo(ship.position) > fieldRadius) {
+    if (distance > shipCollisionRadius + spaceObject.collisionRadius) {
+      spaceObject.isColliding = false;
+    }
+
+    if (distance > fieldRadius) {
       respawnAhead(spaceObject);
     }
     
