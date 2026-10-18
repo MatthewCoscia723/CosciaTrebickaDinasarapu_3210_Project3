@@ -184,13 +184,17 @@ for (let i = 0; i < objectCount; i++) {
   spaceObject.scale.setScalar(2 + Math.random() * 5);
   
   // Set random rotation speeds of each individual asteroid
-  spaceObject.rotationSpeedX = Math.random();
-  spaceObject.rotationSpeedY = Math.random();
+  spaceObject.rotationSpeedX = Math.random() * 0.75;
+  spaceObject.rotationSpeedY = Math.random() * 0.75;
 
   // Set random drifts of each indiidual asteroid
-  spaceObject.driftX = (Math.random() - 0.5) * 0.4;
-  spaceObject.driftY = (Math.random() - 0.5) * 0.4;
-  spaceObject.driftZ = (Math.random() - 0.5) * 0.4;
+  spaceObject.driftX = (Math.random() - 0.5) * 17;
+  spaceObject.driftY = (Math.random() - 0.5) * 17;
+  spaceObject.driftZ = (Math.random() - 0.5) * 17;
+
+  spaceObject.driftType = Math.floor(Math.random() * 2);
+  spaceObject.curveSpeed = 1 + Math.random();
+  spaceObject.curveAmount = 5 + Math.random() * 5;
 
   placeRandomly(spaceObject, ship.position);
   
@@ -346,6 +350,10 @@ function animate() {
     spaceObject.position.x += spaceObject.driftX * deltaTime;
     spaceObject.position.y += spaceObject.driftY * deltaTime;
     spaceObject.position.z += spaceObject.driftZ * deltaTime;
+
+    if (spaceObject.driftType === 1) {
+      spaceObject.position.x += Math.sin(clock.elapsedTime * spaceObject.curveSpeed) * spaceObject.curveAmount * deltaTime;
+    }
 
     if (spaceObject.position.distanceTo(ship.position) > fieldRadius) {
       respawnAhead(spaceObject);
