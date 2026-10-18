@@ -15,6 +15,21 @@
 // Initialize the Scene
 const scene = new THREE.Scene();
 
+const sunGeometry = new THREE.SphereGeometry(15, 25, 25);
+const sunMaterial = new THREE.MeshBasicMaterial({color: 0xffff00});
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+sun.position.set(100, 100, -200);
+scene.add(sun);
+
+// Add ambient lighting throughout the scene
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+
+// Add a directional light (as the sun)
+const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
+directionalLight.position.set(10, 20, 10);
+scene.add(directionalLight);
+
 // Configure the Camera (Perspective Projection)
 // Arguments: Field of View (deg), Aspect Ratio, Near Clipping Plane, Far Clipping Plane
 const camera = new THREE.PerspectiveCamera(
@@ -76,12 +91,12 @@ const minSpawnDistance = 50;
 
 // Geometries for different shapes of varying asteroids
 const objectGeometries = [
-  new THREE.IcosahedronGeometry(1, 0),
-  new THREE.OctahedronGeometry(1,0),
-  new THREE.DodecahedronGeometry(1,0),
-  new THREE.BoxGeometry(1.5, 1.5, 1.5),
-  new THREE.SphereGeometry(1, 8, 6),
-  new THREE.TetrahedronGeometry(1, 0)
+  new THREE.IcosahedronGeometry(3, 0),
+  new THREE.OctahedronGeometry(3,0),
+  new THREE.DodecahedronGeometry(3,0),
+  new THREE.BoxGeometry(4.5, 4.5, 4.5),
+  new THREE.SphereGeometry(3, 10, 8),
+  new THREE.TetrahedronGeometry(3, 0)
 ];
 
 // Real asteroid hex-code colors (according to google)
@@ -126,25 +141,41 @@ for (let i = 0; i < objectCount; i++) {
   
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      asteroidTexture: {value: asteroidTexture}, asteroidColor: {value: new THREE.Color(objectColors[colorID])}
+      asteroidTexture: {value: asteroidTexture}, 
+      asteroidColor: {value: new THREE.Color(objectColors[colorID])},
+      sunPosition: {value: new THREE.Vector3(0, 0, -1)}
     },
 
     vertexShader: `
     varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
     
     void main() {
       vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }`,
     
     fragmentShader: `
     uniform sampler2D asteroidTexture;
     uniform vec3 asteroidColor;
+    uniform vec3 sunPosition;
+
     varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
     
     void main() {
       vec4 textureColor = texture2D(asteroidTexture, vUv);
-      gl_FragColor = vec4(textureColor.rgb * asteroidColor, textureColor.a);
+
+      vec3 normal = normalize(vNormal);
+      vec3 lightDirection = normalize(sunPosition - vPosition);
+      float lightAmount = max(dot(normal, lightDirection), 0.0);
+      float lighting = 0.4 + lightAmount * 2.0;
+      vec3 finalColor = textureColor.rgb * asteroidColor * lighting;
+      gl_FragColor = vec4(finalColor, textureColor.a);
     }`
   });
 
@@ -279,6 +310,16 @@ function animate() {
   // Moves the ship forward in the direction the camera is looking
   camera.getWorldDirection(forward);
   ship.position.addScaledVector(forward, shipSpeed * deltaTime);
+  sun.position.x = ship.position.x;
+  sun.position.y = ship.position.y + 50;
+  sun.position.z = ship.position.z - 200;
+
+  const sunPosition = sun.getWorldPosition(new THREE.Vector3());
+  camera.worldToLocal(sunPosition);
+
+  for (let i = 0; i < spaceObjects.length; i++) {
+    spaceObjects[i].material.uniforms.sunPosition.value.copy(sunPosition);
+  }
 
   // Keeps the starfield centered on the ship so it never flies past the stars
   starfield.position.copy(ship.position);
