@@ -47,6 +47,21 @@ scene.add(ship);
 const shipCollisionRadius = 3;
 const bounceStrength = 30;
 
+// Create the geometry for the ship's energy shield
+const shieldGeometry = new THREE.SphereGeometry(4, 32, 16);
+
+// Use alpha blending to create a transparent energy shield around the ship.
+const shieldMaterial = new THREE.MeshBasicMaterial({
+  color: 0x5fd4ff,
+  transparent: true,
+  opacity: 0.1,
+  blending: THREE.NormalBlending,
+  side: THREE.BackSide
+});
+
+const shield = new THREE.Mesh(shieldGeometry, shieldMaterial);
+ship.add(shield);
+
 // IMPORTANT: Configuration for how many stars fill the background 
 const starCount = 3000;
 
