@@ -275,7 +275,39 @@ let pitch = 0;
 ship.rotation.order = 'YXZ'; // Applies yaw first, then pitch, like a first person camera
 
 // IMPORTANT: Configuration for how fast the ship flies (units per second)
-const shipSpeed = 40;
+let shipSpeed = 40;
+
+// IMPORTANT: Configuration for the slowest and fastest the ship can fly
+const minSpeed = 0;
+const maxSpeed = 100;
+
+// Configuration for how quickly W and S change the speed (units per second, every second)
+const shipAcceleration = 30;
+
+// Object that tracks which speed keys are being held down
+const keys = {
+  w: false,
+  s: false
+};
+
+// Function that marks W or S as held when it is pressed
+function onKeyDown(event) {
+  const key = event.key.toLowerCase(); // Treats W and w the same
+  if (key === "w" || key === "s") {
+    keys[key] = true;
+  }
+}
+
+// Function that marks W or S as released when it is let go
+function onKeyUp(event) {
+  const key = event.key.toLowerCase();
+  if (key === "w" || key === "s") {
+    keys[key] = false;
+  }
+}
+
+window.addEventListener('keydown', onKeyDown);
+window.addEventListener('keyup', onKeyUp);
 
 // Reference to the speed HUD
 const speedDisplay = document.getElementById("speedDisplay");
@@ -374,6 +406,17 @@ function animate() {
   pitch += mouse.y * turnSpeed * deltaTime;
   pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch)); // Keeps pitch within its limits
   ship.rotation.set(pitch, yaw, 0);
+
+  if (keys.w) {
+    shipSpeed += shipAcceleration * deltaTime;
+  }
+  if (keys.s) {
+    shipSpeed -= shipAcceleration * deltaTime;
+  }
+  shipSpeed = Math.max(minSpeed, Math.min(maxSpeed, shipSpeed)); // Keeps speed within its limits
+
+  // Updates the HUD with the current speed
+  speedDisplay.textContent = `Speed: ${Math.round(shipSpeed)}`;
 
   // Moves the ship forward in the direction the camera is looking
   camera.getWorldDirection(forward);
