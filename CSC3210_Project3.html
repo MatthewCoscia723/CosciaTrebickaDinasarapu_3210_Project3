@@ -22,6 +22,11 @@
 <body>
     <div id="hud">
       <div id="speedDisplay">Speed: 40</div>
+      <div id="headingDisplay">Heading: 0°</div>
+      <div id="pitchDisplay">Pitch: 0°</div>
+      <div id="distanceDisplay">Distance: 0</div>
+      <div id="timeDisplay">Flight Time: 00:00</div>
+      <div id="fpsDisplay">FPS: --</div>
       <div id="collisionDisplay">Collisions: 0</div>
     </div>
   <!-- Three.js Dependencies -->
@@ -318,6 +323,31 @@ let collisions = 0;
 const collisionDisplay = document.getElementById("collisionDisplay");
 collisionDisplay.textContent = `Collisions: ${collisions}`;
 
+// References to the flight info HUD
+const headingDisplay = document.getElementById("headingDisplay");
+const pitchDisplay = document.getElementById("pitchDisplay");
+const distanceDisplay = document.getElementById("distanceDisplay");
+const timeDisplay = document.getElementById("timeDisplay");
+const fpsDisplay = document.getElementById("fpsDisplay");
+
+// Running totals for the distance flown (units) and time flown (seconds)
+let distanceTraveled = 0;
+let flightTime = 0;
+
+// Function that turns a number seconds into mm:ss
+function formatTime(totalSeconds) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+// Configuration for how often the FPS display refreshes (seconds)
+const fpsUpdateInterval = 0.5;
+
+// Frames drawn and time passed since the FPS display last refreshed
+let fpsFrameCount = 0;
+let fpsTimer = 0;
+
 // Vector that stores the direction the ship is facing (reused every frame)
 const forward = new THREE.Vector3();
 
@@ -415,8 +445,28 @@ function animate() {
   }
   shipSpeed = Math.max(minSpeed, Math.min(maxSpeed, shipSpeed)); // Keeps speed within its limits
 
-  // Updates the HUD with the current speed
+  // Adds this frame's movement and time to the running totals
+  distanceTraveled += shipSpeed * deltaTime;
+  flightTime += deltaTime;
+
+  // Converts yaw into a 0-359 compass heading that increases when turning right
+  const heading = (Math.round(THREE.MathUtils.radToDeg(-yaw)) % 360 + 360) % 360;
+
+  // Updates the HUD with the current flight info
   speedDisplay.textContent = `Speed: ${Math.round(shipSpeed)}`;
+  headingDisplay.textContent = `Heading: ${heading}°`;
+  pitchDisplay.textContent = `Pitch: ${Math.round(THREE.MathUtils.radToDeg(pitch))}°`;
+  distanceDisplay.textContent = `Distance: ${Math.round(distanceTraveled)}`;
+  timeDisplay.textContent = `Flight Time: ${formatTime(flightTime)}`;
+
+  // Counts frames and refreshes the FPS display every half second
+  fpsFrameCount++;
+  fpsTimer += deltaTime;
+  if (fpsTimer >= fpsUpdateInterval) {
+    fpsDisplay.textContent = `FPS: ${Math.round(fpsFrameCount / fpsTimer)}`;
+    fpsFrameCount = 0;
+    fpsTimer = 0;
+  }
 
   // Moves the ship forward in the direction the camera is looking
   camera.getWorldDirection(forward);
