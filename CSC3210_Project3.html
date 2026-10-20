@@ -259,14 +259,14 @@ for (let i = 0; i < objectCount; i++) {
   spaceObject.rotationSpeedY = Math.random() * 0.75;
 
   // Set random drifts of each individual asteroid
-  spaceObject.driftX = (Math.random() - 0.5) * 25;
-  spaceObject.driftY = (Math.random() - 0.5) * 25;
-  spaceObject.driftZ = (Math.random() - 0.5) * 25;
+  spaceObject.driftX = 20 + (Math.abs(Math.random()) * 1.5)
+  spaceObject.driftY = 20 + (Math.abs(Math.random()) * 1.5)
+  spaceObject.driftZ = 20 + (Math.abs(Math.random()) * 1.5)
 
   // Configure whether the asteroid drifts straight or follows a curved path
   spaceObject.driftType = Math.floor(Math.random() * 2);
   spaceObject.curveSpeed = 1 + Math.random();
-  spaceObject.curveAmount = 5 + Math.random() * 5;
+  spaceObject.curveAmount = 5 + Math.random() * 50;
 
   placeRandomly(spaceObject, ship.position);
   
