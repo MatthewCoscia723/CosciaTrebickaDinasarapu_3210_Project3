@@ -71,6 +71,11 @@ scene.add(ship);
 const shipCollisionRadius = 30;
 const bounceStrength = 125;
 
+// Configuration for the collision screen shake
+const shakeDuration = 0.25;
+const shakeStrength = 1.0;
+let shakeTime = 0;
+
 // Create the geometry for the ship's energy shield
 const shieldGeometry = new THREE.SphereGeometry(4, 32, 16);
 
@@ -454,6 +459,15 @@ function animate() {
   pitch = Math.max(-maxPitch, Math.min(maxPitch, pitch)); // Keeps pitch within its limits
   ship.rotation.set(pitch, yaw, 0);
 
+  if (shakeTime > 0) {
+    camera.position.x = (Math.random() * 2 - 1) * shakeStrength;
+    camera.position.y = (Math.random() * 2 - 1) * shakeStrength;
+
+    shakeTime -= deltaTime;
+  } else {
+    camera.position.set(0, 0, 0);
+  }
+
   if (keys.w) {
     shipSpeed += shipAcceleration * deltaTime;
   }
@@ -543,6 +557,7 @@ function animate() {
       
       // Update collision factors
       spaceObject.isColliding = true;
+      shakeTime = shakeDuration;
       collisions++;
       collisionDisplay.textContent = `Collisions: ${collisions}`;
     }
