@@ -50,7 +50,7 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
 // Add a directional light (as the sun)
-const directionalLight = new THREE.DirectionalLight(0xFFB300, 50);
+const directionalLight = new THREE.DirectionalLight(0xFFB300, 40);
 scene.add(directionalLight);
 
 // Configure the Camera (Perspective Projection)
@@ -142,17 +142,13 @@ const objectGeometries = [
   new THREE.TetrahedronGeometry(3, 0)
 ];
 
-// Real asteroid hex-code colors (according to google)
+// Hex-code colors that have large contrast to each other (so you can tell when they blend)
 const objectColors = [
-  0x515155,
-  0x555055,
-  0x534D57,
-  0x4F5159,
-  0x5f4e43, 
-  0x948D89,
-  0x767676,
-  0xA59692,
-  0x74787D
+  0xff0000,
+  0x00ff00,
+  0x0000ff,
+  0x00ffff,
+  0xff00ff
 ];
 
 // Array that stores every object in the field
@@ -191,7 +187,7 @@ for (let i = 0; i < objectCount; i++) {
       asteroidTexture: {value: asteroidTexture}, //Apply the texture to all asteroids
       asteroidColor: {value: new THREE.Color(objectColors[colorID])}, // Pick a random color out of the color array
       lightDirection: {value: new THREE.Vector3(0, -1, 0)},
-      ambientStrength: {value: 0.50} // Configure the ambient light strength
+      ambientStrength: {value: 0.85} // Configure the ambient light strength
     },
     
     // Vertex shader passes texture coordinates and normals to fragment shader. This is for the directional sunlight
@@ -231,8 +227,16 @@ for (let i = 0; i < objectCount; i++) {
       // Calculate the combination of the ambient and sunlight
       vec3 lighting = ambient + sunlight;
       vec3 finalColor = textureColor.rgb * asteroidColor * lighting;
-      gl_FragColor = vec4(finalColor, textureColor.a);
-    }`
+      gl_FragColor = vec4(finalColor, 1.0);
+    }`,
+    // Blending factors
+    transparent: true,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.MaxEquation,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneFactor,
+    depthTest: false,
+    depthWrite: false
   });
 
   // Set the size of the asteroid
